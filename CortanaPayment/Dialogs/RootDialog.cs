@@ -1,10 +1,14 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Connector;
+﻿
 
 namespace CortanaPayment.Dialogs
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Microsoft.Bot.Builder.Dialogs;
+    using Microsoft.Bot.Connector;
+    using Properties;
+
     [Serializable]
     public class RootDialog : IDialog<object>
     {
@@ -13,7 +17,7 @@ namespace CortanaPayment.Dialogs
 
         public async Task StartAsync(IDialogContext context)
         {
-            this.count = 0;
+            //this.count = 0;
             await Task.FromResult(true);
             context.Wait(MessageReceivedAsync);
             
@@ -21,52 +25,56 @@ namespace CortanaPayment.Dialogs
 
         private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<object> result)
         {
+
+            var reply = context.MakeMessage();
+
+            reply.Text = string.Format(
+                    
+                    Resources.RootDialog_Welcome_Msg,
+                    context.Activity.From.Name);
+
+            reply.Speak = string.Format(
+                    Resources.RootDialog_Welcome_Msg,
+                    context.Activity.From.Name);
+            reply.InputHint = InputHints.IgnoringInput;
+
+            await context.PostAsync(reply);
+
+            await ReplyWithOptions(context);
+
+            context.Wait(this.HandleReply);
+
             var activity = await result as Activity;
             activity.Text = activity.Text ?? string.Empty;
 
-            // check if the user said reset
-            if (activity.Text.ToLowerInvariant().StartsWith("reset"))
+            
+
+        }
+
+        private static async Task ReplyWithOptions(IDialogContext context)
+        {
+            var reply = context.MakeMessage();
+            reply.Type = ActivityTypes.Message;
+            reply.TextFormat = TextFormatTypes.Plain;
+            reply.Text = string.Format(
+                   "How can I help you now?",
+                   context.Activity.From.Name);
+            reply.Speak = reply.Text = string.Format(
+                   "How can I help you now?",
+                   context.Activity.From.Name);
+
+            reply.SuggestedActions = new SuggestedActions()
             {
-                // ask the user to confirm if they want to reset the counter
-                var options = new PromptOptions<string>(prompt: "Are you sure you want to reset the count?",
-                    retry: "Didn't get that!", speak: "Do you want me to reset the counter?",
-                    retrySpeak: "You can say yes or no!",
-                    options: PromptDialog.PromptConfirm.Options,
-                    promptStyler: new PromptStyler());
+                Actions = new List<CardAction>()
+                {
+                    new CardAction(){ Title = "Donate", Type=ActionTypes.ImBack, Value="donate" },
+                    new CardAction(){ Title = "Search", Type=ActionTypes.ImBack, Value="search" },
+                    new CardAction(){ Title = "Reset", Type=ActionTypes.ImBack, Value="reset" }
+                }
+            };
+            reply.InputHint = InputHints.ExpectingInput;
 
-                PromptDialog.Confirm(context, AfterResetAsync, options);
-
-            }
-            else if (activity.Text.ToLowerInvariant().StartsWith("donate"))
-            {
-                // ask the user to confirm if they want to reset the counter
-                var reply = context.MakeMessage();
-                reply.Type = ActivityTypes.Message;
-                reply.TextFormat = TextFormatTypes.Plain;
-                reply.Text = string.Format(
-                       "Would you like to donate?",
-                       context.Activity.From.Name);
-                reply.Speak = reply.Text = string.Format(
-                       "Would you like to donate?",
-                       context.Activity.From.Name);
-                reply.InputHint = InputHints.ExpectingInput;
-
-                await context.PostAsync(reply);
-                context.Wait(this.HandleReply);
-            }
-            else
-            {
-                // calculate something for us to return
-                int length = activity.Text.Length;
-
-                // increment the counter
-                this.count++;
-
-                // say reply to the user
-                await context.SayAsync($"{count}: You sent {activity.Text} which was {length} characters", $"{count}: You said {activity.Text}", new MessageOptions() { InputHint = InputHints.AcceptingInput });
-                context.Wait(MessageReceivedAsync);
-            }
-
+            await context.PostAsync(reply);
         }
 
         public async Task AfterResetAsync(IDialogContext context, IAwaitable<bool> argument)
@@ -89,6 +97,40 @@ namespace CortanaPayment.Dialogs
 
         public async Task HandleReply(IDialogContext context, IAwaitable<IMessageActivity> result)
         {
+            var activity = await result as Activity;
+            activity.Text = activity.Text ?? string.Empty;
+            // check if the user said reset
+            if (activity.Text.ToLowerInvariant().StartsWith("reset"))
+            {
+                // ask the user to confirm if they want to reset the counter
+                var options = new PromptOptions<string>(prompt: "Are you sure you want to reset the count?",
+                    retry: "Didn't get that!", speak: "Do you want me to reset the counter?",
+                    retrySpeak: "You can say yes or no!",
+                    options: PromptDialog.PromptConfirm.Options,
+                    promptStyler: new PromptStyler());
+
+                PromptDialog.Confirm(context, AfterResetAsync, options);
+
+            }
+            else if (activity.Text.ToLowerInvariant().StartsWith("donate"))
+            {
+                
+                context.Call(new DonateDialog(), this.HandleDonateComplete);
+            }
+            else
+            {
+                // calculate something for us to return
+                int length = activity.Text.Length;
+
+                // increment the counter
+                this.count++;
+
+                // say reply to the user
+                await context.SayAsync($"{count}: You sent {activity.Text} which was {length} characters", $"{count}: You said {activity.Text}", new MessageOptions() { InputHint = InputHints.AcceptingInput });
+                context.Wait(MessageReceivedAsync);
+            }
+
+            /*
             var activity = await result as Activity;
             activity.Text = activity.Text ?? string.Empty;
 
@@ -120,7 +162,7 @@ namespace CortanaPayment.Dialogs
                 await context.PostAsync(reply);
                 context.Wait(this.MessageReceivedAsync);
             }
-
+            */
 
 
         }
