@@ -9,12 +9,14 @@ namespace CortanaPayment.Dialogs
     public class RootDialog : IDialog<object>
     {
         private int count;
+        public const string CARTKEY = "CART_ID";
 
-        public Task StartAsync(IDialogContext context)
+        public async Task StartAsync(IDialogContext context)
         {
             this.count = 0;
+            await Task.FromResult(true);
             context.Wait(MessageReceivedAsync);
-            return Task.CompletedTask;
+            
         }
 
         private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<object> result)
@@ -126,19 +128,31 @@ namespace CortanaPayment.Dialogs
 
         public async Task HandleDonateComplete(IDialogContext context, IAwaitable<object> result)
         {
+            var message = await result as string;
+
+
+
             var reply = context.MakeMessage();
             reply.Type = ActivityTypes.Message;
             reply.TextFormat = TextFormatTypes.Plain;
             reply.Text = string.Format(
-                   "Done.",
+                   message!=null? message: "Haha.",
                    context.Activity.From.Name);
             reply.Speak = reply.Text = string.Format(
-                   "Done.",
+                   message != null ? message : "Haha.",
                    context.Activity.From.Name);
             reply.InputHint = InputHints.IgnoringInput;
 
             await context.PostAsync(reply);
-            context.Wait(this.MessageReceivedAsync);
+
+            /*
+            var exitReply = context.MakeMessage();
+            exitReply.Type = ActivityTypes.EndOfConversation;
+            exitReply.Code = EndOfConversationCodes.CompletedSuccessfully;
+            exitReply.AsEndOfConversationActivity();
+            await context.PostAsync(exitReply);
+            */
+            context.Done<object>(null);
         }
 
     }

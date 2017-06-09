@@ -42,7 +42,7 @@ namespace CortanaPayment.Dialogs
             reply.Speak = reply.Text = string.Format(
                    "Debug 1",
                    context.Activity.From.Name);
-            reply.InputHint = InputHints.AcceptingInput;
+            reply.InputHint = InputHints.ExpectingInput;
 
             await context.PostAsync(reply);
 
@@ -64,11 +64,13 @@ namespace CortanaPayment.Dialogs
             reply.Speak = reply.Text = string.Format(
                    "Debug 2.",
                    context.Activity.From.Name);
-            reply.InputHint = InputHints.ExpectingInput;
+            reply.InputHint = InputHints.IgnoringInput;
 
             await context.PostAsync(reply);
 
-            context.Done("yes");
+
+
+            context.Done("Dialog Completed");
 
         }
 
