@@ -87,7 +87,7 @@
             // workaround the fact that invoke.relatesto.user can be null
             // we keep the userId in context.ConversationData[cartId]
             var conversationData = await stateClient.BotState.GetConversationDataAsync(invoke.RelatesTo.ChannelId, invoke.RelatesTo.Conversation.Id, token);
-            var cartId = conversationData.GetProperty<string>(RootDialog.CARTKEY);
+            var cartId = conversationData.GetProperty<string>(PaymentDialog.CARTKEY);
 
             if (invoke.RelatesTo.User == null && !string.IsNullOrEmpty(cartId))
             {

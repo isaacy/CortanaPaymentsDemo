@@ -109,20 +109,34 @@
         {
             var activity = await result as Activity;
             activity.Text = activity.Text ?? string.Empty;
+
+           
+            await context.SayAsync("thank you");
+
+            Donation donation = new Donation
+            {
+                Amount = 10,
+                Recipient = selectedCharity,
+                Currency = "USD",
+                Description = "Charitable donation",
+                DonorName = context.Activity.From.Name
+            };
+
+            context.Call(new PaymentDialog(donation), this.DonationCompleted);
+        }
+
+        private async Task DonationCompleted(IDialogContext context, IAwaitable<string> result)
+        {
             var reply = context.MakeMessage();
-            reply.Type = ActivityTypes.Message;
+
             reply.Text = string.Format(
-                   "Please confirm your donation.",
-                   context.Activity.From.Name);
-            reply.Speak = reply.Text = string.Format(
-                    "Please confirm your donation.",
-                   context.Activity.From.Name);
-            reply.InputHint = InputHints.IgnoringInput;
+                    CultureInfo.CurrentCulture,
+                    "Thank you for donating to {0}",
+                    selectedCharity.Name);
 
             await context.PostAsync(reply);
 
-            context.Done("Dialog Completed");
-
+            context.Done("completed");
         }
 
         private async Task HandleFallbackReply(IDialogContext context, IAwaitable<object> result)
@@ -179,15 +193,6 @@
 
             return plCard.ToAttachment();
         }
-
-
-        private static async Task ReplyWithDonationOptions(IDialogContext context)
-        {
-            var reply = context.MakeMessage();
-
-            
-
-            await context.PostAsync(reply);
-        }
+        
     }
 }

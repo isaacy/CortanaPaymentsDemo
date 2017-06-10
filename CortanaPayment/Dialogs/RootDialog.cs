@@ -13,7 +13,6 @@ namespace CortanaPayment.Dialogs
     public class RootDialog : IDialog<object>
     {
         private int count;
-        public const string CARTKEY = "CART_ID";
 
         public async Task StartAsync(IDialogContext context)
         {
@@ -178,10 +177,10 @@ namespace CortanaPayment.Dialogs
             reply.Type = ActivityTypes.Message;
             reply.TextFormat = TextFormatTypes.Plain;
             reply.Text = string.Format(
-                   message!=null? message: "Haha.",
+                   message!=null? message: "debug: donation completed.",
                    context.Activity.From.Name);
             reply.Speak = reply.Text = string.Format(
-                   message != null ? message : "Haha.",
+                   message != null ? message : "debug: donation completed.",
                    context.Activity.From.Name);
             reply.InputHint = InputHints.IgnoringInput;
 
