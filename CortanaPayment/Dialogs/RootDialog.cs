@@ -67,9 +67,9 @@ namespace CortanaPayment.Dialogs
             {
                 Actions = new List<CardAction>()
                 {
-                    new CardAction(){ Title = "Donate", Type=ActionTypes.ImBack, Value="donate" },
-                    new CardAction(){ Title = "Search", Type=ActionTypes.ImBack, Value="search" },
-                    new CardAction(){ Title = "Reset", Type=ActionTypes.ImBack, Value="reset" }
+                    new CardAction(){ Title = "Donate", Type=ActionTypes.PostBack, Value="donate" },
+                    new CardAction(){ Title = "Search", Type=ActionTypes.PostBack, Value="search" },
+                    new CardAction(){ Title = "Reset", Type=ActionTypes.PostBack, Value="reset" }
                 }
             };
             reply.InputHint = InputHints.ExpectingInput;
