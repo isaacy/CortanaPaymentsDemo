@@ -142,14 +142,12 @@ namespace CortanaPayment.Dialogs
                 */
                 Buttons = new List<CardAction>
                 {
-                    /*
                     new CardAction
                     {
                         Title = "Pay",
                         Type = PaymentRequest.PaymentActionType,
                         Value = BuildPaymentRequest(cartId, item, PaymentService.GetAllowedPaymentMethods())
                     },
-                    */
                     new CardAction
                     {
                         Title = "Finish",
@@ -218,12 +216,13 @@ namespace CortanaPayment.Dialogs
         private async Task AfterPurchaseAsync(IDialogContext context, IAwaitable<object> argument)
         {
             // clean up state store after completion
-           
 
-            //var activity = await argument as Activity;
+
+
             await context.SayAsync("hello");
             context.Done("transaction complete");
-            /*
+
+            var activity = await argument as Activity;
             var paymentRecord = activity?.Value as PaymentRecord;
 
             if (paymentRecord == null)
@@ -235,7 +234,8 @@ namespace CortanaPayment.Dialogs
                 {
                     // show error
                     await context.SayAsync("your payment is confirmed...");
-                    
+
+                    /*
                     StateClient stateClient = activity.GetStateClient();
                     BotData userData = await stateClient.BotState.GetConversationDataAsync(activity.ChannelId, activity.Conversation.Id);
                     var savedPaymentRecord = userData.GetProperty<PaymentRecord>("PaymentRecord");
@@ -255,11 +255,13 @@ namespace CortanaPayment.Dialogs
 
                         await context.PostAsync(reply);
 
-                        context.Done("transaction complete");
+                       
                     }
+                    */
+                    context.Done("transaction complete");
                 }
                 else
-                { 
+                {
 
                     // show error
                     var errorMessage = "something went wrong";
@@ -284,7 +286,6 @@ namespace CortanaPayment.Dialogs
                 context.Done("transaction complete");
 
             }
-            */
         }
 
         private async Task ShowReceipt(IDialogContext context, PaymentRecord paymentRecord)
