@@ -29,13 +29,17 @@ namespace CortanaPayment.Dialogs
         public async Task StartAsync(IDialogContext context)
         {
             await Task.FromResult(true);
-            context.Wait(this.MessageReceivedAsync);
+            await ConfirmPayment(context);
         }
 
 
         public async Task MessageReceivedAsync(IDialogContext context, IAwaitable<IMessageActivity> argument)
         {
+            await ConfirmPayment(context);
+        }
 
+        private async Task ConfirmPayment(IDialogContext context)
+        {
             await context.SayAsync("confirming your payment...");
 
             var cartId = donation.Id.ToString();
@@ -46,7 +50,7 @@ namespace CortanaPayment.Dialogs
             replyMessage.Attachments = new List<Attachment>();
             replyMessage.Speak = "Please confirm payment.";
             replyMessage.Attachments.Add(await BuildPaymentCardAsync(cartId, donation));
-            replyMessage.InputHint = InputHints.ExpectingInput;
+            replyMessage.InputHint = InputHints.AcceptingInput;
 
             await context.PostAsync(replyMessage);
 
@@ -128,6 +132,7 @@ namespace CortanaPayment.Dialogs
                 Title = item.ToString(),
                 Subtitle = $"{item.Currency} {item.Amount.ToString("F")}",
                 Text = item.DonorName,
+                /*
                 Images = new List<CardImage>
                 {
                     new CardImage
@@ -135,15 +140,25 @@ namespace CortanaPayment.Dialogs
                         Url = item.Recipient.ImageUrl
                     }
                 },
+                */
                 Buttons = new List<CardAction>
                 {
+                    /*
                     new CardAction
                     {
-                        Title = "Confirm Payment",
+                        Title = "Pay",
                         Type = PaymentRequest.PaymentActionType,
                         Value = BuildPaymentRequest(cartId, item, PaymentService.GetAllowedPaymentMethods())
+                    },
+                    */
+                    new CardAction
+                    {
+                        Title = "Finish",
+                        Type = "postBack",
+                        Value = "finish",
                     }
                 }
+
             };
 
             return Task.FromResult(heroCard.ToAttachment());
@@ -201,45 +216,92 @@ namespace CortanaPayment.Dialogs
             return receiptCard.ToAttachment();
         }
 
-        private async Task AfterPurchaseAsync(IDialogContext context, IAwaitable<IMessageActivity> argument)
+        private async Task AfterPurchaseAsync(IDialogContext context, IAwaitable<object> argument)
         {
             // clean up state store after completion
-            var cartId = context.ConversationData.Get<string>(CARTKEY);
-            context.ConversationData.RemoveValue(CARTKEY);
-            context.ConversationData.RemoveValue(cartId);
+           
 
             var activity = await argument as Activity;
+            await context.SayAsync("hello");
+            context.Done("transaction complete");
+            /*
             var paymentRecord = activity?.Value as PaymentRecord;
 
             if (paymentRecord == null)
             {
-                // show error
-                var errorMessage = activity.Text;
-                var message = context.MakeMessage();
-                message.Text = errorMessage;
-                message.InputHint = InputHints.IgnoringInput;
+                var message = activity.Text;
+                await context.SayAsync("no payment record...");
 
-                await context.PostAsync(message);
+                if (message.ToLowerInvariant().Contains("finish"))
+                {
+                    // show error
+                    await context.SayAsync("your payment is confirmed...");
+                    
+                    StateClient stateClient = activity.GetStateClient();
+                    BotData userData = await stateClient.BotState.GetConversationDataAsync(activity.ChannelId, activity.Conversation.Id);
+                    var savedPaymentRecord = userData.GetProperty<PaymentRecord>("PaymentRecord");
 
-                context.Wait(this.MessageReceivedAsync);
+                    if (savedPaymentRecord != null)
+                    {
+                        await ShowReceipt(context, savedPaymentRecord);
+                        context.Done("transaction complete");
+                    }
+                    else
+                    {
+                        // show error
+                        var errorMessage = "something went wrong";
+                        var reply = context.MakeMessage();
+                        reply.Text = errorMessage;
+                        reply.InputHint = InputHints.IgnoringInput;
+
+                        await context.PostAsync(reply);
+
+                        context.Done("transaction complete");
+                    }
+                }
+                else
+                { 
+
+                    // show error
+                    var errorMessage = "something went wrong";
+                    var reply = context.MakeMessage();
+                    reply.Text = errorMessage;
+                    reply.InputHint = InputHints.IgnoringInput;
+
+                    await context.PostAsync(reply);
+
+                    context.Done("transaction complete");
+                }
             }
             else
             {
-                // show receipt
-                var message = context.MakeMessage();
-                message.Text = string.Format(
-                    CultureInfo.CurrentCulture,
-                    Resources.RootDialog_Receipt_Text,
-                    paymentRecord.OrderId,
-                    paymentRecord.PaymentProcessor);
+                await context.SayAsync("found payment record...");
 
-                message.Attachments.Add(await BuildReceiptCardAsync(paymentRecord, donation));
-                message.InputHint = InputHints.IgnoringInput;
-                await context.PostAsync(message);
+                var cartId = context.ConversationData.Get<string>(CARTKEY);
+                context.ConversationData.RemoveValue(CARTKEY);
+                context.ConversationData.RemoveValue(cartId);
+
+                await ShowReceipt(context, paymentRecord);
+                context.Done("transaction complete");
 
             }
+            */
         }
-        
+
+        private async Task ShowReceipt(IDialogContext context, PaymentRecord paymentRecord)
+        {
+            // show receipt
+            var reply = context.MakeMessage();
+            reply.Text = string.Format(
+                CultureInfo.CurrentCulture,
+                Resources.RootDialog_Receipt_Text,
+                paymentRecord.OrderId,
+                paymentRecord.PaymentProcessor);
+
+            reply.Attachments.Add(await BuildReceiptCardAsync(paymentRecord, donation));
+            reply.InputHint = InputHints.IgnoringInput;
+            await context.PostAsync(reply);
+        }
 
 
 

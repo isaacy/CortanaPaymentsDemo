@@ -201,6 +201,12 @@
                     // Resume the conversation with the receipt to user
                     message.Text = paymentRequestComplete.Id;
                     message.Value = paymentRecord;
+
+                    StateClient stateClient = invoke.GetStateClient();
+
+                    BotData userData = await stateClient.BotState.GetConversationDataAsync(invoke.ChannelId, invoke.Conversation.Id);
+                    userData.SetProperty<PaymentRecord>("PaymentRecord", paymentRecord);
+                    await stateClient.BotState.SetUserDataAsync(invoke.ChannelId, invoke.Conversation.Id, userData);
                 }
                 else
                 {

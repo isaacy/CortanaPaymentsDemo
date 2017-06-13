@@ -111,7 +111,7 @@ namespace CortanaPayment.Dialogs
                 PromptDialog.Confirm(context, AfterResetAsync, options);
 
             }
-            else if (activity.Text.ToLowerInvariant().StartsWith("donate"))
+            else if (activity.Text.ToLowerInvariant().Contains("donate"))
             {
                 
                 context.Call(new DonateDialog(), this.HandleDonateComplete);
