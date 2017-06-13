@@ -49,8 +49,7 @@ namespace CortanaPayment.Dialogs
             var replyMessage = context.MakeMessage();
             replyMessage.Attachments = new List<Attachment>();
             replyMessage.Speak = "Please confirm payment.";
-            replyMessage.Attachments.Add(await BuildPaymentCardAsync(cartId, donation));
-            replyMessage.InputHint = InputHints.AcceptingInput;
+            replyMessage.Attachments.Add(BuildPaymentCardAsync(cartId, donation));
 
             await context.PostAsync(replyMessage);
 
@@ -125,7 +124,7 @@ namespace CortanaPayment.Dialogs
             };
         }
 
-        private static Task<Attachment> BuildPaymentCardAsync(string cartId, Donation item)
+        private Attachment BuildPaymentCardAsync(string cartId, Donation item)
         {
             var heroCard = new HeroCard
             {
@@ -161,7 +160,7 @@ namespace CortanaPayment.Dialogs
 
             };
 
-            return Task.FromResult(heroCard.ToAttachment());
+            return heroCard.ToAttachment();
         }
 
         private static ReceiptItem BuildReceiptItem(string title, string subtitle, string price, string imageUrl)
@@ -221,7 +220,7 @@ namespace CortanaPayment.Dialogs
             // clean up state store after completion
            
 
-            var activity = await argument as Activity;
+            //var activity = await argument as Activity;
             await context.SayAsync("hello");
             context.Done("transaction complete");
             /*
